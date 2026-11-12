@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VRViewer — 2D / VR180 / 360° 沉浸式媒体播放器</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- WebGL / WebXR Render Stage -->
+      <div id="viewer-stage" class="viewer-stage"></div>
+
+      <!-- Drag & Drop Overlay -->
+      <div id="drop-overlay" class="drop-overlay hidden">
+        <div class="drop-card">
+          <div class="drop-icon">📂</div>
+          <p class="drop-title">松开即可添加到播放列表</p>
+          <p class="drop-sub">支持 2D / VR180 / 360° 照片与视频（可多选）</p>
+        </div>
+      </div>
+
+      <!-- Welcome / Empty State Overlay -->
+      <div id="welcome-overlay" class="welcome-overlay">
+        <div class="welcome-card">
+          <div class="welcome-badge">WebXR · Three.js · 纯前端</div>
+          <h1>VRViewer 沉浸式媒体浏览器</h1>
+          <p class="welcome-desc">
+            支持 <strong>2D 照片/视频</strong>、<strong>VR180 双目</strong>、<strong>360° 全景</strong>。
+            普通浏览器默认以平面/单目视角流畅浏览；在 Meta Quest 等 XR 浏览器中可一键进入立体 VR 模式。
+          </p>
+
+          <div class="welcome-actions">
+            <button id="welcome-local-btn" class="btn btn-primary btn-lg">
+              选择本地文件
+            </button>
+            <button id="welcome-url-btn" class="btn btn-secondary btn-lg">
+              通过 URL 观看
+            </button>
+            <button id="welcome-sample-btn" class="btn btn-ghost btn-lg">
+              加载内置测试图
+            </button>
+          </div>
+
+          <div class="welcome-tips">
+            <span>🖱️ 拖拽画面环顾 / 平移</span>
+            <span>🔍 滚轮缩放视角</span>
+            <span>⌨️ WASD / 方向键移动 · R 重置</span>
+            <span>📦 支持直接拖放文件到窗口</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top HUD -->
+      <header id="hud-top" class="hud hud-top">
+        <div class="hud-left">
+          <div class="brand">
+            <span class="brand-dot"></span>
+            <span class="brand-name">VRViewer</span>
+          </div>
+          <div class="media-meta">
+            <span id="media-title" class="media-title">未加载媒体</span>
+            <span id="media-badge" class="media-badge hidden"></span>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <button id="btn-add-local" class="btn btn-secondary" title="添加本地照片或视频">
+            + 本地文件
+          </button>
+          <button id="btn-add-url" class="btn btn-secondary" title="输入图片或视频 URL">
+            + URL 链接
+          </button>
+          <button id="btn-enter-vr" class="btn btn-vr" title="在支持的头显浏览器中进入 WebXR VR 模式">
+            进入 VR 模式
+          </button>
+          <button id="btn-toggle-playlist" class="btn btn-icon" title="播放列表">
+            ☰
+          </button>
+          <button id="btn-toggle-hud" class="btn btn-icon" title="隐藏/显示界面 (H)">
+            👁
+          </button>
+        </div>
+      </header>
+
+      <!-- Bottom HUD -->
+      <footer id="hud-bottom" class="hud hud-bottom">
+        <!-- Video Controls -->
+        <div id="video-bar" class="video-bar hidden">
+          <button id="btn-play-pause" class="btn btn-icon-sm" title="播放/暂停 (空格)">▶</button>
+          <span id="video-time" class="video-time">00:00 / 00:00</span>
+          <input
+            id="video-seek"
+            type="range"
+            min="0"
+            max="1000"
+            value="0"
+            class="seek-slider"
+            aria-label="视频进度"
+          />
+          <button id="btn-mute" class="btn btn-icon-sm" title="静音/取消静音 (M)">🔊</button>
+          <input
+            id="video-volume"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value="1"
+            class="volume-slider"
+            aria-label="音量"
+          />
+        </div>
+
+        <!-- Projection & View Controls -->
+        <div class="controls-bar">
+          <div class="format-group">
+            <label for="format-select" class="control-label">投影模式</label>
+            <select id="format-select" class="select-input"></select>
+            <div id="quick-format-pills" class="quick-pills">
+              <button data-fmt="2d" class="pill">2D</button>
+              <button data-fmt="vr180-sbs" class="pill">VR180 SBS</button>
+              <button data-fmt="360-mono" class="pill">360°</button>
+              <button data-fmt="360-tb" class="pill">360° TB</button>
+            </div>
+          </div>
+
+          <div class="utility-group">
+            <label class="checkbox-pill" title="若双目立体画面左右眼颠倒，可勾选此项交换">
+              <input id="chk-swap-eyes" type="checkbox" />
+              <span>交换左右眼</span>
+            </label>
+            <button id="btn-reset-view" class="btn btn-ghost btn-sm" title="重置视角与缩放 (R)">
+              重置视角 (R)
+            </button>
+            <button id="btn-fullscreen" class="btn btn-ghost btn-sm" title="全屏切换 (F)">
+              全屏 (F)
+            </button>
+            <button id="btn-help" class="btn btn-ghost btn-sm" title="快捷键与使用说明 (?)">
+              ?
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      <!-- Floating button to restore HUD when hidden -->
+      <button id="btn-restore-hud" class="restore-hud-btn hidden" title="显示控制栏 (H)">
+        显示控制栏 (H)
+      </button>
+
+      <!-- Playlist Drawer -->
+      <aside id="playlist-drawer" class="playlist-drawer hidden">
+        <div class="drawer-header">
+          <h2>媒体列表 (<span id="playlist-count">0</span>)</h2>
+          <div class="drawer-actions">
+            <button id="btn-load-samples" class="btn btn-ghost btn-xs">测试图</button>
+            <button id="btn-close-playlist" class="btn btn-icon-sm">✕</button>
+          </div>
+        </div>
+        <div id="playlist-items" class="playlist-items"></div>
+      </aside>
+
+      <!-- URL Input Modal -->
+      <div id="url-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-backdrop" id="url-modal-backdrop"></div>
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>添加在线媒体 URL</h3>
+            <button id="url-modal-close" class="btn btn-icon-sm">✕</button>
+          </div>
+          <form id="url-form" class="modal-body">
+            <label class="field">
+              <span>媒体链接 (图片或视频直链)</span>
+              <input
+                id="url-input"
+                type="url"
+                required
+                placeholder="https://example.com/photo_vr180.jpg 或 video.mp4"
+                autocomplete="off"
+              />
+            </label>
+
+            <div class="field-row">
+              <label class="field">
+                <span>媒体类型</span>
+                <select id="url-kind-select">
+                  <option value="auto">自动识别</option>
+                  <option value="image">照片 (Image)</option>
+                  <option value="video">视频 (Video)</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>投影格式</span>
+                <select id="url-format-select">
+                  <option value="auto">自动识别</option>
+                </select>
+              </label>
+            </div>
+
+            <p class="cors-note">
+              提示：纯前端 WebGL 渲染远程图片/视频纹理时，目标服务器需开启
+              <code>Access-Control-Allow-Origin: *</code> (CORS) 响应头。
+            </p>
+
+            <div class="modal-footer">
+              <button type="button" id="url-cancel-btn" class="btn btn-ghost">取消</button>
+              <button type="submit" class="btn btn-primary">打开观看</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Modal -->
+      <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-backdrop" id="help-modal-backdrop"></div>
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>操作指南与格式说明</h3>
+            <button id="help-modal-close" class="btn btn-icon-sm">✕</button>
+          </div>
+          <div class="modal-body help-content">
+            <h4>普通 2D 浏览器控制</h4>
+            <ul>
+              <li><strong>鼠标左键拖拽</strong>：360° / VR180 模式下旋转视角；2D 模式下平移画面</li>
+              <li><strong>鼠标滚轮 / + - 键</strong>：缩放视场角 (FOV)</li>
+              <li><strong>W A S D / 方向键</strong>：平滑移动视角方向或平移画面</li>
+              <li><strong>空格键</strong>：播放 / 暂停视频</li>
+              <li><strong>← / →（视频聚焦或 J / L）</strong>：快退 / 快进 5 秒（J/L）</li>
+              <li><strong>R 键</strong>：重置视角与缩放</li>
+              <li><strong>F 键</strong>：全屏切换 · <strong>H 键</strong>：隐藏/显示控制栏</li>
+            </ul>
+
+            <h4>双目立体与 Quest VR 模式</h4>
+            <ul>
+              <li>在普通 2D 显示器上观看 <strong>VR180 SBS / TB</strong> 或 <strong>360° 立体</strong> 时，默认提取<strong>左眼单目视角</strong>正常渲染，不会出现重影分屏。</li>
+              <li>在 Meta Quest 等支持 <strong>WebXR</strong> 的浏览器中点击右上角「进入 VR 模式」，将自动启用左右眼独立立体渲染（头部 3DoF/6DoF 追踪，扳机键可控制视频播放/暂停）。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden File Input -->
+      <input
+        id="file-input"
+        type="file"
+        multiple
+        accept="image/*,video/*"
+        class="hidden"
+      />
+
+      <!-- Toast -->
+      <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
