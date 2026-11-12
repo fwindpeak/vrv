@@ -682,6 +682,31 @@ const driveModal = new DriveModalController({
   onToast: (msg, ms) => showToast(msg, ms),
 });
 
+const isStaticDeploy = import.meta.env.VITE_STATIC_DEPLOY === 'true';
+
+function hideGDriveButtons(): void {
+  btnOpenGDrive.classList.add('hidden');
+  welcomeGDriveBtn.classList.add('hidden');
+}
+
+async function initGDriveAvailability(): Promise<void> {
+  if (isStaticDeploy) {
+    hideGDriveButtons();
+    return;
+  }
+  if (import.meta.env.PROD) {
+    try {
+      const res = await fetch('/api/gdrive/status');
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        hideGDriveButtons();
+      }
+    } catch {
+      hideGDriveButtons();
+    }
+  }
+}
+
 btnOpenGDrive.addEventListener('click', () => driveModal.open());
 welcomeGDriveBtn.addEventListener('click', () => driveModal.open());
 btnToggleLang.addEventListener('click', () => toggleLocale());
@@ -706,3 +731,4 @@ applyTheme(currentTheme);
 populateFormatSelects();
 renderPlaylist();
 initXRSupport();
+initGDriveAvailability();

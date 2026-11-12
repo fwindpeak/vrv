@@ -34,6 +34,7 @@ jobs:
       - name: Build static site
         env:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          VITE_STATIC_DEPLOY: 'true'
         run: bun run build
 
       - name: Upload artifact
