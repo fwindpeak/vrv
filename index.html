@@ -14,41 +14,41 @@
       <div id="drop-overlay" class="drop-overlay hidden">
         <div class="drop-card">
           <div class="drop-icon">📂</div>
-          <p class="drop-title">松开即可添加到播放列表</p>
-          <p class="drop-sub">支持 2D / VR180 / 360° 照片与视频（可多选）</p>
+          <p class="drop-title" data-i18n="drop.title">松开即可添加到播放列表</p>
+          <p class="drop-sub" data-i18n="drop.sub">支持 2D / VR180 / 360° 照片与视频（可多选）</p>
         </div>
       </div>
 
       <!-- Welcome / Empty State Overlay -->
       <div id="welcome-overlay" class="welcome-overlay">
         <div class="welcome-card">
-          <div class="welcome-badge">WebXR · Three.js · 纯前端</div>
-          <h1>VRViewer 沉浸式媒体浏览器</h1>
-          <p class="welcome-desc">
+          <div class="welcome-badge" data-i18n="welcome.badge">WebXR · Three.js · 纯前端</div>
+          <h1 data-i18n="welcome.title">VRViewer 沉浸式媒体浏览器</h1>
+          <p class="welcome-desc" data-i18n-html="welcome.desc">
             支持 <strong>2D 照片/视频</strong>、<strong>VR180 双目</strong>、<strong>360° 全景</strong>。
             普通浏览器默认以平面/单目视角流畅浏览；在 Meta Quest 等 XR 浏览器中可一键进入立体 VR 模式。
           </p>
 
           <div class="welcome-actions">
-            <button id="welcome-local-btn" class="btn btn-primary btn-lg">
+            <button id="welcome-local-btn" class="btn btn-primary btn-lg" data-i18n="welcome.localBtn">
               选择本地文件
             </button>
-            <button id="welcome-gdrive-btn" class="btn btn-secondary btn-lg">
+            <button id="welcome-gdrive-btn" class="btn btn-secondary btn-lg" data-i18n="welcome.gdriveBtn">
               挂载 Google Drive
             </button>
-            <button id="welcome-url-btn" class="btn btn-secondary btn-lg">
+            <button id="welcome-url-btn" class="btn btn-secondary btn-lg" data-i18n="welcome.urlBtn">
               通过 URL 观看
             </button>
-            <button id="welcome-sample-btn" class="btn btn-ghost btn-lg">
+            <button id="welcome-sample-btn" class="btn btn-ghost btn-lg" data-i18n="welcome.sampleBtn">
               加载内置测试图
             </button>
           </div>
 
           <div class="welcome-tips">
-            <span>🖱️ 拖拽画面环顾 / 平移</span>
-            <span>🔍 滚轮缩放视角</span>
-            <span>⌨️ WASD / 方向键移动 · R 重置</span>
-            <span>📦 支持直接拖放文件到窗口</span>
+            <span data-i18n="welcome.tipDrag">🖱️ 拖拽画面环顾 / 平移</span>
+            <span data-i18n="welcome.tipZoom">🔍 滚轮缩放视角</span>
+            <span data-i18n="welcome.tipKeys">⌨️ WASD / 方向键移动 · R 重置</span>
+            <span data-i18n="welcome.tipDrop">📦 支持直接拖放文件到窗口</span>
           </div>
         </div>
       </div>
@@ -61,28 +61,34 @@
             <span class="brand-name">VRViewer</span>
           </div>
           <div class="media-meta">
-            <span id="media-title" class="media-title">未加载媒体</span>
+            <span id="media-title" class="media-title" data-i18n="hud.noMedia">未加载媒体</span>
             <span id="media-badge" class="media-badge hidden"></span>
           </div>
         </div>
 
         <div class="hud-right">
-          <button id="btn-add-local" class="btn btn-secondary" title="添加本地照片或视频">
+          <button id="btn-add-local" class="btn btn-secondary" data-i18n="hud.addLocal" data-i18n-title="hud.addLocalTitle" title="添加本地照片或视频">
             + 本地文件
           </button>
-          <button id="btn-open-gdrive" class="btn btn-secondary" title="挂载并浏览 Google Drive 文件">
+          <button id="btn-open-gdrive" class="btn btn-secondary" data-i18n="hud.addGDrive" data-i18n-title="hud.addGDriveTitle" title="挂载并浏览 Google Drive 文件">
             + Google Drive
           </button>
-          <button id="btn-add-url" class="btn btn-secondary" title="输入图片或视频 URL">
+          <button id="btn-add-url" class="btn btn-secondary" data-i18n="hud.addUrl" data-i18n-title="hud.addUrlTitle" title="输入图片或视频 URL">
             + URL 链接
           </button>
-          <button id="btn-enter-vr" class="btn btn-vr" title="在支持的头显浏览器中进入 WebXR VR 模式">
+          <button id="btn-enter-vr" class="btn btn-vr" data-i18n="hud.enterVR" data-i18n-title="hud.enterVRTitle" title="在支持的头显浏览器中进入 WebXR VR 模式">
             进入 VR 模式
           </button>
-          <button id="btn-toggle-playlist" class="btn btn-icon" title="播放列表">
+          <button id="btn-toggle-lang" class="btn btn-icon btn-lang" data-i18n="hud.langBtn" data-i18n-title="hud.langTitle" title="Switch to English">
+            EN
+          </button>
+          <button id="btn-toggle-theme" class="btn btn-icon" title="切换到亮色模式">
+            ☀️
+          </button>
+          <button id="btn-toggle-playlist" class="btn btn-icon" data-i18n-title="hud.playlistTitle" title="播放列表">
             ☰
           </button>
-          <button id="btn-toggle-hud" class="btn btn-icon" title="隐藏/显示界面 (H)">
+          <button id="btn-toggle-hud" class="btn btn-icon" data-i18n-title="hud.toggleHudTitle" title="隐藏/显示界面 (H)">
             👁
           </button>
         </div>
@@ -92,7 +98,7 @@
       <footer id="hud-bottom" class="hud hud-bottom">
         <!-- Video Controls -->
         <div id="video-bar" class="video-bar hidden">
-          <button id="btn-play-pause" class="btn btn-icon-sm" title="播放/暂停 (空格)">▶</button>
+          <button id="btn-play-pause" class="btn btn-icon-sm" data-i18n-title="video.playPauseTitle" title="播放/暂停 (空格)">▶</button>
           <span id="video-time" class="video-time">00:00 / 00:00</span>
           <input
             id="video-seek"
@@ -101,9 +107,10 @@
             max="1000"
             value="0"
             class="seek-slider"
+            data-i18n-aria-label="video.seekLabel"
             aria-label="视频进度"
           />
-          <button id="btn-mute" class="btn btn-icon-sm" title="静音/取消静音 (M)">🔊</button>
+          <button id="btn-mute" class="btn btn-icon-sm" data-i18n-title="video.muteTitle" title="静音/取消静音 (M)">🔊</button>
           <input
             id="video-volume"
             type="range"
@@ -112,6 +119,7 @@
             step="0.05"
             value="1"
             class="volume-slider"
+            data-i18n-aria-label="video.volumeLabel"
             aria-label="音量"
           />
         </div>
@@ -119,7 +127,7 @@
         <!-- Projection & View Controls -->
         <div class="controls-bar">
           <div class="format-group">
-            <label for="format-select" class="control-label">投影模式</label>
+            <label for="format-select" class="control-label" data-i18n="controls.projection">投影模式</label>
             <select id="format-select" class="select-input"></select>
             <div id="quick-format-pills" class="quick-pills">
               <button data-fmt="2d" class="pill">2D</button>
@@ -130,17 +138,17 @@
           </div>
 
           <div class="utility-group">
-            <label class="checkbox-pill" title="若双目立体画面左右眼颠倒，可勾选此项交换">
+            <label class="checkbox-pill" data-i18n-title="controls.swapEyesTitle" title="若双目立体画面左右眼颠倒，可勾选此项交换">
               <input id="chk-swap-eyes" type="checkbox" />
-              <span>交换左右眼</span>
+              <span data-i18n="controls.swapEyes">交换左右眼</span>
             </label>
-            <button id="btn-reset-view" class="btn btn-ghost btn-sm" title="重置视角与缩放 (R)">
+            <button id="btn-reset-view" class="btn btn-ghost btn-sm" data-i18n="controls.resetView" data-i18n-title="controls.resetViewTitle" title="重置视角与缩放 (R)">
               重置视角 (R)
             </button>
-            <button id="btn-fullscreen" class="btn btn-ghost btn-sm" title="全屏切换 (F)">
+            <button id="btn-fullscreen" class="btn btn-ghost btn-sm" data-i18n="controls.fullscreen" data-i18n-title="controls.fullscreenTitle" title="全屏切换 (F)">
               全屏 (F)
             </button>
-            <button id="btn-help" class="btn btn-ghost btn-sm" title="快捷键与使用说明 (?)">
+            <button id="btn-help" class="btn btn-ghost btn-sm" data-i18n-title="controls.helpTitle" title="快捷键与使用说明 (?)">
               ?
             </button>
           </div>
@@ -148,16 +156,16 @@
       </footer>
 
       <!-- Floating button to restore HUD when hidden -->
-      <button id="btn-restore-hud" class="restore-hud-btn hidden" title="显示控制栏 (H)">
+      <button id="btn-restore-hud" class="restore-hud-btn hidden" data-i18n="hud.restoreHud" data-i18n-title="hud.restoreHudTitle" title="显示控制栏 (H)">
         显示控制栏 (H)
       </button>
 
       <!-- Playlist Drawer -->
       <aside id="playlist-drawer" class="playlist-drawer hidden">
         <div class="drawer-header">
-          <h2>媒体列表 (<span id="playlist-count">0</span>)</h2>
+          <h2><span data-i18n="playlist.heading">媒体列表</span> (<span id="playlist-count">0</span>)</h2>
           <div class="drawer-actions">
-            <button id="btn-load-samples" class="btn btn-ghost btn-xs">测试图</button>
+            <button id="btn-load-samples" class="btn btn-ghost btn-xs" data-i18n="playlist.samples">测试图</button>
             <button id="btn-close-playlist" class="btn btn-icon-sm">✕</button>
           </div>
         </div>
@@ -169,16 +177,17 @@
         <div class="modal-backdrop" id="url-modal-backdrop"></div>
         <div class="modal-card">
           <div class="modal-header">
-            <h3>添加在线媒体 URL</h3>
+            <h3 data-i18n="urlModal.title">添加在线媒体 URL</h3>
             <button id="url-modal-close" class="btn btn-icon-sm">✕</button>
           </div>
           <form id="url-form" class="modal-body">
             <label class="field">
-              <span>媒体链接 (图片或视频直链)</span>
+              <span data-i18n="urlModal.urlLabel">媒体链接 (图片或视频直链)</span>
               <input
                 id="url-input"
                 type="url"
                 required
+                data-i18n-placeholder="urlModal.urlPlaceholder"
                 placeholder="https://example.com/photo_vr180.jpg 或 video.mp4"
                 autocomplete="off"
               />
@@ -186,30 +195,30 @@
 
             <div class="field-row">
               <label class="field">
-                <span>媒体类型</span>
+                <span data-i18n="urlModal.kindLabel">媒体类型</span>
                 <select id="url-kind-select">
-                  <option value="auto">自动识别</option>
-                  <option value="image">照片 (Image)</option>
-                  <option value="video">视频 (Video)</option>
+                  <option value="auto" data-i18n="urlModal.kindAuto">自动识别</option>
+                  <option value="image" data-i18n="urlModal.kindImage">照片 (Image)</option>
+                  <option value="video" data-i18n="urlModal.kindVideo">视频 (Video)</option>
                 </select>
               </label>
 
               <label class="field">
-                <span>投影格式</span>
+                <span data-i18n="urlModal.formatLabel">投影格式</span>
                 <select id="url-format-select">
-                  <option value="auto">自动识别</option>
+                  <option value="auto" data-i18n="urlModal.formatAuto">自动识别</option>
                 </select>
               </label>
             </div>
 
-            <p class="cors-note">
+            <p class="cors-note" data-i18n-html="urlModal.corsNote">
               提示：纯前端 WebGL 渲染远程图片/视频纹理时，目标服务器需开启
               <code>Access-Control-Allow-Origin: *</code> (CORS) 响应头。
             </p>
 
             <div class="modal-footer">
-              <button type="button" id="url-cancel-btn" class="btn btn-ghost">取消</button>
-              <button type="submit" class="btn btn-primary">打开观看</button>
+              <button type="button" id="url-cancel-btn" class="btn btn-ghost" data-i18n="urlModal.cancel">取消</button>
+              <button type="submit" class="btn btn-primary" data-i18n="urlModal.submit">打开观看</button>
             </div>
           </form>
         </div>
@@ -220,12 +229,12 @@
         <div class="modal-backdrop" id="help-modal-backdrop"></div>
         <div class="modal-card">
           <div class="modal-header">
-            <h3>操作指南与格式说明</h3>
+            <h3 data-i18n="helpModal.title">操作指南与格式说明</h3>
             <button id="help-modal-close" class="btn btn-icon-sm">✕</button>
           </div>
           <div class="modal-body help-content">
-            <h4>普通 2D 浏览器控制</h4>
-            <ul>
+            <h4 data-i18n="helpModal.basicTitle">普通 2D 浏览器控制</h4>
+            <ul data-i18n-html="helpModal.basicList">
               <li><strong>鼠标左键拖拽</strong>：360° / VR180 模式下旋转视角；2D 模式下平移画面</li>
               <li><strong>鼠标滚轮 / + - 键</strong>：缩放视场角 (FOV)</li>
               <li><strong>W A S D / 方向键</strong>：平滑移动视角方向或平移画面</li>
@@ -235,8 +244,8 @@
               <li><strong>F 键</strong>：全屏切换 · <strong>H 键</strong>：隐藏/显示控制栏</li>
             </ul>
 
-            <h4>双目立体与 Quest VR 模式</h4>
-            <ul>
+            <h4 data-i18n="helpModal.vrTitle">双目立体与 Quest VR 模式</h4>
+            <ul data-i18n-html="helpModal.vrList">
               <li>在普通 2D 显示器上观看 <strong>VR180 SBS / TB</strong> 或 <strong>360° 立体</strong> 时，默认提取<strong>左眼单目视角</strong>正常渲染，不会出现重影分屏。</li>
               <li>在 Meta Quest 等支持 <strong>WebXR</strong> 的浏览器中点击右上角「进入 VR 模式」，将自动启用左右眼独立立体渲染（头部 3DoF/6DoF 追踪，扳机键可控制视频播放/暂停）。</li>
             </ul>
@@ -249,15 +258,15 @@
         <div class="modal-backdrop" id="gdrive-modal-backdrop"></div>
         <div class="modal-card modal-card-wide">
           <div class="modal-header">
-            <h3>Google Drive 挂载与浏览</h3>
+            <h3 data-i18n="gdriveModal.title">Google Drive 挂载与浏览</h3>
             <button id="gdrive-modal-close" class="btn btn-icon-sm">✕</button>
           </div>
 
           <div class="drive-tabs">
-            <button id="tab-gdrive-cloud" class="drive-tab active" data-tab="cloud">
+            <button id="tab-gdrive-cloud" class="drive-tab active" data-tab="cloud" data-i18n="gdriveModal.tabCloud">
               ☁️ Google Drive 云端 (OAuth)
             </button>
-            <button id="tab-gdrive-mounts" class="drive-tab" data-tab="mounts">
+            <button id="tab-gdrive-mounts" class="drive-tab" data-tab="mounts" data-i18n="gdriveModal.tabMounts">
               💾 本地挂载目录 (Drive Desktop / rclone)
             </button>
           </div>
@@ -268,43 +277,43 @@
               <div id="gdrive-auth-box" class="drive-auth-box hidden">
                 <div class="drive-setup-grid">
                   <div class="drive-setup-section">
-                    <h4>方式 1：Google OAuth 2.0 授权（推荐，可自动刷新）</h4>
-                    <p class="drive-hint">
+                    <h4 data-i18n="gdriveModal.oauthTitle">方式 1：Google OAuth 2.0 授权（推荐，可自动刷新）</h4>
+                    <p class="drive-hint" data-i18n="gdriveModal.oauthHint">
                       在 Google Cloud Console 创建 OAuth 2.0 客户端（Web 应用），将下方回调地址加入「已获授权的重定向 URI」：
                     </p>
                     <div class="redirect-uri-row">
                       <code id="gdrive-redirect-uri">http://localhost:5173/api/gdrive/auth/callback</code>
-                      <button id="btn-copy-redirect" type="button" class="btn btn-ghost btn-xs">复制</button>
+                      <button id="btn-copy-redirect" type="button" class="btn btn-ghost btn-xs" data-i18n="gdriveModal.copy">复制</button>
                     </div>
                     <div class="field-row">
                       <label class="field">
-                        <span>Client ID</span>
+                        <span data-i18n="gdriveModal.clientId">Client ID</span>
                         <input id="gdrive-client-id" type="text" placeholder="xxx.apps.googleusercontent.com" autocomplete="off" />
                       </label>
                       <label class="field">
-                        <span>Client Secret</span>
+                        <span data-i18n="gdriveModal.clientSecret">Client Secret</span>
                         <input id="gdrive-client-secret" type="password" placeholder="GOCSPX-..." autocomplete="off" />
                       </label>
                     </div>
                     <div class="drive-auth-actions">
-                      <button id="btn-gdrive-save-connect" type="button" class="btn btn-primary">
+                      <button id="btn-gdrive-save-connect" type="button" class="btn btn-primary" data-i18n="gdriveModal.saveConnect">
                         保存并授权连接 Google Drive
                       </button>
                     </div>
                   </div>
 
                   <div class="drive-setup-section drive-token-section">
-                    <h4>方式 2：使用 Access Token 快速连接</h4>
-                    <p class="drive-hint">
+                    <h4 data-i18n="gdriveModal.tokenTitle">方式 2：使用 Access Token 快速连接</h4>
+                    <p class="drive-hint" data-i18n="gdriveModal.tokenHint">
                       若已有 OAuth Access Token（如从 OAuth Playground 获取），可直接粘贴连接：
                     </p>
                     <div class="field-row">
                       <label class="field">
-                        <span>Access Token</span>
+                        <span data-i18n="gdriveModal.accessToken">Access Token</span>
                         <input id="gdrive-manual-token" type="password" placeholder="ya29.a0..." autocomplete="off" />
                       </label>
                       <div class="drive-token-btn-wrap">
-                        <button id="btn-gdrive-manual-connect" type="button" class="btn btn-secondary">
+                        <button id="btn-gdrive-manual-connect" type="button" class="btn btn-secondary" data-i18n="gdriveModal.connectNow">
                           立即连接
                         </button>
                       </div>
@@ -317,22 +326,22 @@
                 <div class="drive-toolbar">
                   <div class="drive-account-pill">
                     <span class="status-dot"></span>
-                    <span id="gdrive-account-label">已连接 Google Drive</span>
-                    <button id="btn-gdrive-disconnect" type="button" class="btn btn-ghost btn-xs">断开</button>
+                    <span id="gdrive-account-label" data-i18n="gdriveModal.connectedDefault">已连接 Google Drive</span>
+                    <button id="btn-gdrive-disconnect" type="button" class="btn btn-ghost btn-xs" data-i18n="gdriveModal.disconnect">断开</button>
                   </div>
                   <div class="drive-view-pills">
-                    <button class="pill active" data-view="my-drive">我的云端硬盘</button>
-                    <button class="pill" data-view="shared">与我共享</button>
-                    <button class="pill" data-view="all-media">全部媒体</button>
+                    <button class="pill active" data-view="my-drive" data-i18n="gdriveModal.viewMyDrive">我的云端硬盘</button>
+                    <button class="pill" data-view="shared" data-i18n="gdriveModal.viewShared">与我共享</button>
+                    <button class="pill" data-view="all-media" data-i18n="gdriveModal.viewAllMedia">全部媒体</button>
                   </div>
                   <div class="drive-search-wrap">
-                    <input id="gdrive-search-input" type="search" placeholder="搜索文件名…" />
+                    <input id="gdrive-search-input" type="search" data-i18n-placeholder="gdriveModal.searchPlaceholder" placeholder="搜索文件名…" />
                   </div>
                 </div>
 
                 <div class="drive-breadcrumb-bar">
                   <div id="gdrive-breadcrumbs" class="drive-breadcrumbs"></div>
-                  <button id="btn-gdrive-add-all" type="button" class="btn btn-secondary btn-xs">
+                  <button id="btn-gdrive-add-all" type="button" class="btn btn-secondary btn-xs" data-i18n="gdriveModal.addAll">
                     + 全部加入播放列表
                   </button>
                 </div>
@@ -347,22 +356,23 @@
                 <input
                   id="mount-path-input"
                   type="text"
+                  data-i18n-placeholder="gdriveModal.mountPlaceholder"
                   placeholder="输入挂载目录路径，如 ~/Library/CloudStorage/GoogleDrive-.../My Drive 或 /Volumes/GoogleDrive"
                 />
-                <button id="btn-mount-add" type="button" class="btn btn-primary">挂载目录</button>
+                <button id="btn-mount-add" type="button" class="btn btn-primary" data-i18n="gdriveModal.mountAdd">挂载目录</button>
               </div>
 
               <div id="mount-detected-bar" class="mount-detected-bar hidden"></div>
 
               <div class="mount-layout">
                 <div class="mount-sidebar">
-                  <div class="mount-sidebar-title">已挂载目录</div>
+                  <div class="mount-sidebar-title" data-i18n="gdriveModal.mountedDirs">已挂载目录</div>
                   <div id="mount-list" class="mount-list"></div>
                 </div>
                 <div class="mount-main">
                   <div class="drive-breadcrumb-bar">
                     <div id="mount-breadcrumbs" class="drive-breadcrumbs"></div>
-                    <button id="btn-mount-add-all" type="button" class="btn btn-secondary btn-xs">
+                    <button id="btn-mount-add-all" type="button" class="btn btn-secondary btn-xs" data-i18n="gdriveModal.addAll">
                       + 全部加入播放列表
                     </button>
                   </div>

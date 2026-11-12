@@ -23,6 +23,8 @@ export interface MountBrowseEntry {
   modifiedTime?: string;
 }
 
+import { t } from '../i18n';
+
 export interface GDriveStatus {
   connected: boolean;
   hasCredentials: boolean;
@@ -62,7 +64,7 @@ async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
     const errMsg =
       typeof data === 'object' && data !== null && 'error' in data
         ? String((data as { error: unknown }).error)
-        : `请求失败 (${res.status})`;
+        : t('api.requestFailed', { status: res.status });
     throw new Error(errMsg);
   }
   return data as T;

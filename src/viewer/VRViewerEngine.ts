@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { t } from '../i18n';
 import type { MediaKind, ProjectionFormat } from '../types';
 
 export type UVRegion = 'full' | 'left-half' | 'right-half' | 'top-half' | 'bottom-half';
@@ -276,8 +277,7 @@ export class VRViewerEngine {
       };
 
       img.onerror = () => {
-        const msg =
-          '图片加载失败：请检查 URL 是否有效，或目标服务器是否允许跨域访问（CORS）。';
+        const msg = t('engine.imageLoadError');
         this.callbacks.onMediaError?.(msg);
         reject(new Error(msg));
       };
@@ -332,8 +332,7 @@ export class VRViewerEngine {
       };
 
       const onError = () => {
-        const msg =
-          '视频加载失败：请检查视频格式（建议 MP4/WebM H.264/HEVC）或目标服务器的 CORS 跨域权限。';
+        const msg = t('engine.videoLoadError');
         this.callbacks.onMediaError?.(msg);
         reject(new Error(msg));
       };
@@ -598,7 +597,7 @@ export class VRViewerEngine {
 
   public async enterVR(): Promise<void> {
     if (!navigator.xr) {
-      throw new Error('当前浏览器不支持 WebXR。');
+      throw new Error(t('engine.webxrUnsupported'));
     }
     if (this.xrSession) return;
 

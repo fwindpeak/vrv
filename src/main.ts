@@ -1,5 +1,6 @@
 import './style.css';
-import { FORMAT_OPTIONS, type MediaItem, type MediaKind, type ProjectionFormat } from './types';
+import { applyI18nToDom, onLocaleChange, t, toggleLocale } from './i18n';
+import { getFormatOption, getFormatOptions, type MediaItem, type MediaKind, type ProjectionFormat } from './types';
 import {
   detectProjectionFormat,
   inferMediaKind,
@@ -25,6 +26,8 @@ const btnAddLocal = document.getElementById('btn-add-local') as HTMLButtonElemen
 const btnOpenGDrive = document.getElementById('btn-open-gdrive') as HTMLButtonElement;
 const btnAddUrl = document.getElementById('btn-add-url') as HTMLButtonElement;
 const btnEnterVR = document.getElementById('btn-enter-vr') as HTMLButtonElement;
+const btnToggleLang = document.getElementById('btn-toggle-lang') as HTMLButtonElement;
+const btnToggleTheme = document.getElementById('btn-toggle-theme') as HTMLButtonElement;
 const btnTogglePlaylist = document.getElementById('btn-toggle-playlist') as HTMLButtonElement;
 const btnToggleHud = document.getElementById('btn-toggle-hud') as HTMLButtonElement;
 
@@ -68,6 +71,41 @@ const helpModalClose = document.getElementById('help-modal-close') as HTMLButton
 
 const toastEl = document.getElementById('toast') as HTMLElement;
 
+// Theme State
+type Theme = 'dark' | 'light';
+const THEME_STORAGE_KEY = 'vrviewer-theme';
+
+function detectInitialTheme(): Theme {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === 'dark' || saved === 'light') return saved;
+  } catch {
+    // Ignore storage access errors
+  }
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+let currentTheme: Theme = detectInitialTheme();
+
+function applyTheme(theme: Theme): void {
+  currentTheme = theme;
+  document.documentElement.dataset.theme = theme;
+  btnToggleTheme.textContent = theme === 'dark' ? '☀️' : '🌙';
+  btnToggleTheme.title =
+    theme === 'dark' ? t('hud.themeToLightTitle') : t('hud.themeToDarkTitle');
+  btnToggleTheme.setAttribute('aria-label', btnToggleTheme.title);
+}
+
+function toggleTheme(): void {
+  const next: Theme = currentTheme === 'dark' ? 'light' : 'dark';
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+  } catch {
+    // Ignore storage access errors
+  }
+  applyTheme(next);
+}
+
 // App State
 const playlist: MediaItem[] = [];
 let activeId: string | null = null;
@@ -96,7 +134,18 @@ function formatTime(seconds: number): string {
 }
 
 function populateFormatSelects(): void {
-  for (const opt of FORMAT_OPTIONS) {
+  const prevMain = formatSelect.value;
+  const prevUrl = urlFormatSelect.value || 'auto';
+
+  formatSelect.innerHTML = '';
+  urlFormatSelect.innerHTML = '';
+
+  const autoOpt = document.createElement('option');
+  autoOpt.value = 'auto';
+  autoOpt.textContent = t('urlModal.formatAuto');
+  urlFormatSelect.appendChild(autoOpt);
+
+  for (const opt of getFormatOptions()) {
     const o1 = document.createElement('option');
     o1.value = opt.value;
     o1.textContent = opt.label;
@@ -107,11 +156,18 @@ function populateFormatSelects(): void {
     o2.textContent = opt.label;
     urlFormatSelect.appendChild(o2);
   }
+
+  if (prevMain && Array.from(formatSelect.options).some((o) => o.value === prevMain)) {
+    formatSelect.value = prevMain;
+  }
+  if (prevUrl && Array.from(urlFormatSelect.options).some((o) => o.value === prevUrl)) {
+    urlFormatSelect.value = prevUrl;
+  }
 }
 
 const engine = new VRViewerEngine(viewerStage, {
   onXRStateChange: (inXR) => {
-    btnEnterVR.textContent = inXR ? '退出 VR 模式' : '进入 VR 模式';
+    btnEnterVR.textContent = inXR ? t('hud.exitVR') : t('hud.enterVR');
   },
   onMediaLoaded: async (width, height) => {
     const current = playlist.find((item) => item.id === activeId);
@@ -147,20 +203,20 @@ async function initXRSupport(): Promise<void> {
   xrSupported = await engine.isXRSupported();
   if (!xrSupported) {
     btnEnterVR.classList.add('vr-unsupported');
-    btnEnterVR.title = '当前浏览器未检测到 WebXR 头显（在 Meta Quest 浏览器中可直接进入 VR）';
+    btnEnterVR.title = t('hud.enterVRUnsupportedTitle');
   }
 }
 
 function updateMediaHeader(item: MediaItem | undefined): void {
   if (!item) {
-    mediaTitleEl.textContent = '未加载媒体';
+    mediaTitleEl.textContent = t('hud.noMedia');
     mediaBadgeEl.classList.add('hidden');
     return;
   }
   mediaTitleEl.textContent = item.name;
   const dims = item.width && item.height ? `${item.width}×${item.height}` : '';
-  const kindLabel = item.kind === 'video' ? '视频' : '照片';
-  const fmtOpt = FORMAT_OPTIONS.find((f) => f.value === item.format);
+  const kindLabel = item.kind === 'video' ? t('media.video') : t('media.image');
+  const fmtOpt = getFormatOption(item.format);
   mediaBadgeEl.textContent = [kindLabel, fmtOpt?.shortLabel ?? item.format, dims]
     .filter(Boolean)
     .join(' · ');
@@ -249,7 +305,7 @@ function renderPlaylist(): void {
     empty.style.textAlign = 'center';
     empty.style.fontSize = '13px';
     empty.style.color = 'var(--text-muted)';
-    empty.textContent = '列表为空，点击上方添加本地文件或 URL';
+    empty.textContent = t('playlist.empty');
     playlistItemsEl.appendChild(empty);
     return;
   }
@@ -268,9 +324,9 @@ function renderPlaylist(): void {
 
     const subEl = document.createElement('div');
     subEl.className = 'playlist-item-sub';
-    const fmtShort = FORMAT_OPTIONS.find((f) => f.value === item.format)?.shortLabel ?? item.format;
-    const sourceTag = item.sourceLabel ?? (item.isLocal ? '本地' : '');
-    subEl.textContent = `${item.kind === 'video' ? '视频' : '照片'} · ${fmtShort}${
+    const fmtShort = getFormatOption(item.format)?.shortLabel ?? item.format;
+    const sourceTag = item.sourceLabel ?? (item.isLocal ? t('playlist.localTag') : '');
+    subEl.textContent = `${item.kind === 'video' ? t('media.video') : t('media.image')} · ${fmtShort}${
       sourceTag ? ` · ${sourceTag}` : ''
     }`;
 
@@ -280,7 +336,7 @@ function renderPlaylist(): void {
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-icon-sm';
     delBtn.textContent = '✕';
-    delBtn.title = '从列表中移除';
+    delBtn.title = t('playlist.removeTitle');
     delBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       removeMedia(item.id);
@@ -297,7 +353,7 @@ function addLocalFiles(files: FileList | File[]): void {
     (f) => f.type.startsWith('image/') || f.type.startsWith('video/') || /\.(jpg|jpeg|png|webp|mp4|webm|mov|mkv)$/i.test(f.name)
   );
   if (list.length === 0) {
-    showToast('未检测到支持的照片或视频文件');
+    showToast(t('toast.noSupportedFiles'));
     return;
   }
 
@@ -342,7 +398,7 @@ function addUrlItem(
     const seg = parsed.pathname.split('/').filter(Boolean).pop();
     name = seg ? decodeURIComponent(seg) : parsed.hostname;
   } catch {
-    showToast('请输入有效的 http:// 或 https:// 链接');
+    showToast(t('toast.invalidUrl'));
     return;
   }
 
@@ -456,16 +512,17 @@ btnEnterVR.addEventListener('click', async () => {
     return;
   }
   if (!xrSupported) {
-    showToast(
-      '当前浏览器未检测到 WebXR 设备。请在 Meta Quest 浏览器或连接 PCVR 头显的 Chrome/Edge 中打开以进入 VR 模式。',
-      5000
-    );
+    showToast(t('toast.noWebXR'), 5000);
     return;
   }
   try {
     await engine.enterVR();
   } catch (err) {
-    showToast(`无法进入 VR 模式：${err instanceof Error ? err.message : '未知错误'}`);
+    showToast(
+      t('toast.vrEnterFailed', {
+        msg: err instanceof Error ? err.message : t('toast.unknownError'),
+      })
+    );
   }
 });
 
@@ -627,8 +684,25 @@ const driveModal = new DriveModalController({
 
 btnOpenGDrive.addEventListener('click', () => driveModal.open());
 welcomeGDriveBtn.addEventListener('click', () => driveModal.open());
+btnToggleLang.addEventListener('click', () => toggleLocale());
+btnToggleTheme.addEventListener('click', () => toggleTheme());
+
+onLocaleChange(() => {
+  populateFormatSelects();
+  const current = playlist.find((i) => i.id === activeId);
+  updateMediaHeader(current);
+  renderPlaylist();
+  btnEnterVR.textContent = engine.isInVR() ? t('hud.exitVR') : t('hud.enterVR');
+  if (!xrSupported) {
+    btnEnterVR.title = t('hud.enterVRUnsupportedTitle');
+  }
+  applyTheme(currentTheme);
+  driveModal.refreshLocale();
+});
 
 // Init
+applyI18nToDom();
+applyTheme(currentTheme);
 populateFormatSelects();
 renderPlaylist();
 initXRSupport();

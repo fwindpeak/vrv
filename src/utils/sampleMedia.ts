@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { MediaItem } from '../types';
 
 function createCanvasDataUrl(
@@ -105,24 +106,24 @@ function drawGridSphere(
 export function createSampleItems(): MediaItem[] {
   const vr180Url = createCanvasDataUrl(2048, 1024, (ctx, w, h) => {
     const half = w / 2;
-    drawGridSphere(ctx, 0, half, h, 14, 'VR180 立体测试图', '左眼视角 (Left Eye)');
-    drawGridSphere(ctx, half, half, h, -14, 'VR180 立体测试图', '右眼视角 (Right Eye)');
+    drawGridSphere(ctx, 0, half, h, 14, t('sample.vr180Title'), t('sample.vr180Left'));
+    drawGridSphere(ctx, half, half, h, -14, t('sample.vr180Title'), t('sample.vr180Right'));
   });
 
   const pano360Url = createCanvasDataUrl(2048, 1024, (ctx, w, h) => {
-    drawGridSphere(ctx, 0, w, h, 0, '360° 全景测试图', '拖拽鼠标或 WASD 环顾四周');
+    drawGridSphere(ctx, 0, w, h, 0, t('sample.360Title'), t('sample.360Sub'));
     ctx.fillStyle = 'rgba(248, 250, 252, 0.75)';
     ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('← 左 (90°)', w * 0.25, h * 0.45);
-    ctx.fillText('右 (90°) →', w * 0.75, h * 0.45);
-    ctx.fillText('后方 (180°)', w * 0.06, h * 0.45);
+    ctx.fillText(t('sample.360Left'), w * 0.25, h * 0.45);
+    ctx.fillText(t('sample.360Right'), w * 0.75, h * 0.45);
+    ctx.fillText(t('sample.360Back'), w * 0.06, h * 0.45);
   });
 
   return [
     {
       id: 'sample-vr180',
-      name: '示例：VR180 双目立体图',
+      name: t('sample.vr180Name'),
       url: vr180Url,
       isLocal: false,
       kind: 'image',
@@ -133,7 +134,7 @@ export function createSampleItems(): MediaItem[] {
     },
     {
       id: 'sample-360',
-      name: '示例：360° 全景图',
+      name: t('sample.360Name'),
       url: pano360Url,
       isLocal: false,
       kind: 'image',

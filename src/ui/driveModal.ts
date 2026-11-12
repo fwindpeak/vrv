@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { MediaKind, ProjectionFormat } from '../types';
 import { detectProjectionFormat } from '../utils/formatDetect';
 import {
@@ -89,7 +90,9 @@ export class DriveModalController {
 
   // State
   private cloudView: 'my-drive' | 'shared' | 'all-media' = 'my-drive';
-  private cloudStack: Array<{ id: string; name: string }> = [{ id: 'root', name: '我的云端硬盘' }];
+  private cloudStack: Array<{ id: string; name: string }> = [
+    { id: 'root', name: t('gdriveModal.viewMyDrive') },
+  ];
   private cloudFiles: GDriveFileItem[] = [];
   private cloudNextToken: string | undefined;
   private cloudSearchTimer: number | null = null;
@@ -115,9 +118,9 @@ export class DriveModalController {
     this.copyRedirectBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(this.redirectUriEl.textContent || '');
-        this.callbacks.onToast('已复制回调地址');
+        this.callbacks.onToast(t('drive.copiedRedirect'));
       } catch {
-        this.callbacks.onToast('复制失败，请手动复制');
+        this.callbacks.onToast(t('drive.copyFailed'));
       }
     });
 
@@ -136,7 +139,12 @@ export class DriveModalController {
       this.cloudStack = [
         {
           id: 'root',
-          name: view === 'my-drive' ? '我的云端硬盘' : view === 'shared' ? '与我共享' : '全部媒体',
+          name:
+            view === 'my-drive'
+              ? t('gdriveModal.viewMyDrive')
+              : view === 'shared'
+                ? t('gdriveModal.viewShared')
+                : t('gdriveModal.viewAllMedia'),
         },
       ];
       this.loadCloudFiles();
@@ -150,12 +158,12 @@ export class DriveModalController {
     this.addAllCloudBtn.addEventListener('click', () => {
       const media = this.cloudFiles.filter((f) => !f.isFolder && f.kind);
       if (media.length === 0) {
-        this.callbacks.onToast('当前目录没有可播放的照片或视频');
+        this.callbacks.onToast(t('drive.noMediaInDir'));
         return;
       }
       const items = media.map((f) => this.toCloudPlayable(f));
       this.callbacks.onAddItems(items, true);
-      this.callbacks.onToast(`已添加 ${items.length} 个 Google Drive 媒体到播放列表`);
+      this.callbacks.onToast(t('drive.addedCloudMedia', { count: items.length }));
       this.close();
     });
 
@@ -171,22 +179,22 @@ export class DriveModalController {
       if (!this.activeMountId) return;
       const media = this.mountEntries.filter((e) => !e.isFolder && e.kind);
       if (media.length === 0) {
-        this.callbacks.onToast('当前目录没有可播放的照片或视频');
+        this.callbacks.onToast(t('drive.noMediaInDir'));
         return;
       }
       const items = media.map((e) => this.toMountPlayable(this.activeMountId!, e));
       this.callbacks.onAddItems(items, true);
-      this.callbacks.onToast(`已添加 ${items.length} 个挂载目录媒体到播放列表`);
+      this.callbacks.onToast(t('drive.addedMountMedia', { count: items.length }));
       this.close();
     });
 
     window.addEventListener('message', (e) => {
       if (e.data && typeof e.data === 'object' && e.data.type === 'vrviewer-gdrive-oauth') {
         if (e.data.success) {
-          this.callbacks.onToast('Google Drive 连接成功');
+          this.callbacks.onToast(t('drive.connected'));
           this.refreshCloudStatus();
         } else {
-          this.callbacks.onToast('Google Drive 授权未完成', 4000);
+          this.callbacks.onToast(t('drive.oauthIncomplete'), 4000);
         }
       }
     });
@@ -207,6 +215,27 @@ export class DriveModalController {
 
   public isOpen(): boolean {
     return !this.modal.classList.contains('hidden');
+  }
+
+  public refreshLocale(): void {
+    if (this.cloudStack.length > 0 && this.cloudStack[0].id === 'root') {
+      this.cloudStack[0].name =
+        this.cloudView === 'my-drive'
+          ? t('gdriveModal.viewMyDrive')
+          : this.cloudView === 'shared'
+            ? t('gdriveModal.viewShared')
+            : t('gdriveModal.viewAllMedia');
+    }
+    if (!this.isOpen()) return;
+    this.renderCloudBreadcrumbs();
+    this.renderCloudFiles();
+    this.renderDetectedMounts();
+    this.renderMountList();
+    if (this.activeMountId) {
+      this.renderMountFiles(this.activeMountId);
+    } else {
+      this.mountFileListEl.innerHTML = `<div class="drive-empty">${t('drive.mountEmptyHint')}</div>`;
+    }
   }
 
   private switchTab(tab: 'cloud' | 'mounts'): void {
@@ -231,7 +260,7 @@ export class DriveModalController {
         this.authBox.classList.add('hidden');
         this.browserBox.classList.remove('hidden');
         this.accountLabel.textContent =
-          status.email || status.displayName || '已连接 Google Drive';
+          status.email || status.displayName || t('gdriveModal.connectedDefault');
         await this.loadCloudFiles();
       } else {
         this.authBox.classList.remove('hidden');
@@ -241,7 +270,9 @@ export class DriveModalController {
       this.authBox.classList.remove('hidden');
       this.browserBox.classList.add('hidden');
       this.callbacks.onToast(
-        `无法连接 Bun 后端服务：${err instanceof Error ? err.message : '请使用 bun run dev 启动'}`,
+        t('drive.backendError', {
+          msg: err instanceof Error ? err.message : t('drive.backendFallback'),
+        }),
         4500
       );
     }
@@ -251,7 +282,7 @@ export class DriveModalController {
     const clientId = this.clientIdInput.value.trim();
     const clientSecret = this.clientSecretInput.value.trim();
     if (!clientId || !clientSecret) {
-      this.callbacks.onToast('请填写 Client ID 和 Client Secret');
+      this.callbacks.onToast(t('drive.enterCreds'));
       return;
     }
 
@@ -261,7 +292,10 @@ export class DriveModalController {
       const { url } = await fetchGDriveAuthUrl();
       window.open(url, 'vrviewer-gdrive-oauth', 'width=560,height=680');
     } catch (err) {
-      this.callbacks.onToast(err instanceof Error ? err.message : '授权启动失败', 4500);
+      this.callbacks.onToast(
+        err instanceof Error ? err.message : t('drive.authStartFailed'),
+        4500
+      );
     } finally {
       this.saveConnectBtn.disabled = false;
     }
@@ -270,7 +304,7 @@ export class DriveModalController {
   private async handleManualTokenConnect(): Promise<void> {
     const token = this.manualTokenInput.value.trim();
     if (!token) {
-      this.callbacks.onToast('请输入 Access Token');
+      this.callbacks.onToast(t('drive.enterToken'));
       return;
     }
 
@@ -278,10 +312,10 @@ export class DriveModalController {
       this.manualConnectBtn.disabled = true;
       await connectGDriveToken(token);
       this.manualTokenInput.value = '';
-      this.callbacks.onToast('Google Drive 连接成功');
+      this.callbacks.onToast(t('drive.connected'));
       await this.refreshCloudStatus();
     } catch (err) {
-      this.callbacks.onToast(err instanceof Error ? err.message : '连接失败', 4500);
+      this.callbacks.onToast(err instanceof Error ? err.message : t('drive.connectFailed'), 4500);
     } finally {
       this.manualConnectBtn.disabled = false;
     }
@@ -291,16 +325,16 @@ export class DriveModalController {
     try {
       await disconnectGDriveAccount();
       this.cloudFiles = [];
-      this.callbacks.onToast('已断开 Google Drive 连接');
+      this.callbacks.onToast(t('drive.disconnected'));
       await this.refreshCloudStatus();
     } catch (err) {
-      this.callbacks.onToast(err instanceof Error ? err.message : '断开失败');
+      this.callbacks.onToast(err instanceof Error ? err.message : t('drive.disconnectFailed'));
     }
   }
 
   private async loadCloudFiles(append = false): Promise<void> {
     if (!append) {
-      this.fileListEl.innerHTML = '<div class="drive-empty">正在读取 Google Drive 文件…</div>';
+      this.fileListEl.innerHTML = `<div class="drive-empty">${t('drive.loadingCloud')}</div>`;
       this.cloudNextToken = undefined;
     }
 
@@ -319,7 +353,7 @@ export class DriveModalController {
       this.renderCloudFiles();
     } catch (err) {
       this.fileListEl.innerHTML = `<div class="drive-empty">${
-        err instanceof Error ? err.message : '加载失败'
+        err instanceof Error ? err.message : t('drive.loadFailed')
       }</div>`;
     }
   }
@@ -363,7 +397,7 @@ export class DriveModalController {
   private renderCloudFiles(): void {
     this.fileListEl.innerHTML = '';
     if (this.cloudFiles.length === 0) {
-      this.fileListEl.innerHTML = '<div class="drive-empty">当前目录没有照片、视频或子文件夹</div>';
+      this.fileListEl.innerHTML = `<div class="drive-empty">${t('drive.emptyDir')}</div>`;
       return;
     }
 
@@ -386,9 +420,9 @@ export class DriveModalController {
       meta.className = 'drive-file-meta';
       const parts: string[] = [];
       if (file.isFolder) {
-        parts.push('文件夹');
+        parts.push(t('drive.folder'));
       } else {
-        parts.push(file.kind === 'video' ? '视频' : '照片');
+        parts.push(file.kind === 'video' ? t('media.video') : t('media.image'));
         if (file.width && file.height) parts.push(`${file.width}×${file.height}`);
         const sz = formatBytes(file.size);
         if (sz) parts.push(sz);
@@ -415,12 +449,12 @@ export class DriveModalController {
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.className = 'btn btn-ghost btn-xs';
-        addBtn.textContent = '+ 队列';
-        addBtn.title = '加入播放列表';
+        addBtn.textContent = t('drive.addQueue');
+        addBtn.title = t('drive.addQueueTitle');
         addBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           this.callbacks.onAddItems([this.toCloudPlayable(file)], false);
-          this.callbacks.onToast(`已加入播放列表：${file.name}`);
+          this.callbacks.onToast(t('drive.addedSingle', { name: file.name }));
         });
         row.appendChild(addBtn);
       }
@@ -432,7 +466,7 @@ export class DriveModalController {
       const moreBtn = document.createElement('button');
       moreBtn.type = 'button';
       moreBtn.className = 'btn btn-ghost btn-sm drive-load-more';
-      moreBtn.textContent = '加载更多文件…';
+      moreBtn.textContent = t('drive.loadMore');
       moreBtn.addEventListener('click', () => this.loadCloudFiles(true));
       this.fileListEl.appendChild(moreBtn);
     }
@@ -456,12 +490,11 @@ export class DriveModalController {
         await this.loadMountDir(this.activeMountId, this.mountRelPath);
       } else {
         this.mountBreadcrumbsEl.innerHTML = '';
-        this.mountFileListEl.innerHTML =
-          '<div class="drive-empty">请在上方输入路径，或点击检测到的 Google Drive 目录进行挂载</div>';
+        this.mountFileListEl.innerHTML = `<div class="drive-empty">${t('drive.mountEmptyHint')}</div>`;
       }
     } catch (err) {
       this.mountFileListEl.innerHTML = `<div class="drive-empty">${
-        err instanceof Error ? err.message : '读取挂载目录失败'
+        err instanceof Error ? err.message : t('drive.mountReadFailed')
       }</div>`;
     }
   }
@@ -475,22 +508,22 @@ export class DriveModalController {
     }
 
     this.mountDetectedBar.classList.remove('hidden');
-    this.mountDetectedBar.innerHTML = '<span class="detected-label">检测到本机 Google Drive：</span>';
+    this.mountDetectedBar.innerHTML = `<span class="detected-label">${t('drive.detectedLabel')}</span>`;
 
     for (const d of unmounted) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn btn-secondary btn-xs';
-      btn.textContent = `+ 挂载 ${d.name}`;
+      btn.textContent = t('drive.mountBtnPrefix', { name: d.name });
       btn.addEventListener('click', async () => {
         try {
           const m = await createMount(d.path, d.name);
           this.activeMountId = m.id;
           this.mountRelPath = '';
-          this.callbacks.onToast(`已挂载：${m.name}`);
+          this.callbacks.onToast(t('drive.mountedToast', { name: m.name }));
           await this.refreshMounts();
         } catch (err) {
-          this.callbacks.onToast(err instanceof Error ? err.message : '挂载失败');
+          this.callbacks.onToast(err instanceof Error ? err.message : t('drive.mountFailed'));
         }
       });
       this.mountDetectedBar.appendChild(btn);
@@ -500,7 +533,7 @@ export class DriveModalController {
   private async handleAddMount(): Promise<void> {
     const path = this.mountPathInput.value.trim();
     if (!path) {
-      this.callbacks.onToast('请输入目录路径');
+      this.callbacks.onToast(t('drive.enterPath'));
       return;
     }
 
@@ -510,10 +543,10 @@ export class DriveModalController {
       this.mountPathInput.value = '';
       this.activeMountId = mount.id;
       this.mountRelPath = '';
-      this.callbacks.onToast(`已挂载目录：${mount.name}`);
+      this.callbacks.onToast(t('drive.mountedDirToast', { name: mount.name }));
       await this.refreshMounts();
     } catch (err) {
-      this.callbacks.onToast(err instanceof Error ? err.message : '挂载失败', 4500);
+      this.callbacks.onToast(err instanceof Error ? err.message : t('drive.mountFailed'), 4500);
     } finally {
       this.mountAddBtn.disabled = false;
     }
@@ -522,7 +555,7 @@ export class DriveModalController {
   private renderMountList(): void {
     this.mountListEl.innerHTML = '';
     if (this.mounts.length === 0) {
-      this.mountListEl.innerHTML = '<div class="drive-empty-sm">暂无挂载目录</div>';
+      this.mountListEl.innerHTML = `<div class="drive-empty-sm">${t('drive.noMounts')}</div>`;
       return;
     }
 
@@ -545,7 +578,7 @@ export class DriveModalController {
       delBtn.type = 'button';
       delBtn.className = 'btn btn-icon-sm';
       delBtn.textContent = '✕';
-      delBtn.title = '取消挂载';
+      delBtn.title = t('drive.unmountTitle');
       delBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         await deleteMount(m.id);
@@ -559,7 +592,7 @@ export class DriveModalController {
   }
 
   private async loadMountDir(mountId: string, relPath: string): Promise<void> {
-    this.mountFileListEl.innerHTML = '<div class="drive-empty">正在读取目录…</div>';
+    this.mountFileListEl.innerHTML = `<div class="drive-empty">${t('drive.loadingDir')}</div>`;
     try {
       const res = await browseMountDir(mountId, relPath);
       this.mountRelPath = res.currentPath;
@@ -568,7 +601,7 @@ export class DriveModalController {
       this.renderMountFiles(mountId);
     } catch (err) {
       this.mountFileListEl.innerHTML = `<div class="drive-empty">${
-        err instanceof Error ? err.message : '读取目录失败'
+        err instanceof Error ? err.message : t('drive.readDirFailed')
       }</div>`;
     }
   }
@@ -608,14 +641,14 @@ export class DriveModalController {
       url: getMountStreamUrl(mountId, entry.path),
       kind,
       format,
-      sourceLabel: '挂载目录',
+      sourceLabel: t('drive.mountSourceLabel'),
     };
   }
 
   private renderMountFiles(mountId: string): void {
     this.mountFileListEl.innerHTML = '';
     if (this.mountEntries.length === 0) {
-      this.mountFileListEl.innerHTML = '<div class="drive-empty">当前目录没有照片、视频或子文件夹</div>';
+      this.mountFileListEl.innerHTML = `<div class="drive-empty">${t('drive.emptyDir')}</div>`;
       return;
     }
 
@@ -637,10 +670,12 @@ export class DriveModalController {
       const meta = document.createElement('div');
       meta.className = 'drive-file-meta';
       if (entry.isFolder) {
-        meta.textContent = '文件夹';
+        meta.textContent = t('drive.folder');
       } else {
         const sz = formatBytes(entry.size);
-        meta.textContent = [entry.kind === 'video' ? '视频' : '照片', sz].filter(Boolean).join(' · ');
+        meta.textContent = [entry.kind === 'video' ? t('media.video') : t('media.image'), sz]
+          .filter(Boolean)
+          .join(' · ');
       }
 
       info.appendChild(name);
@@ -659,12 +694,12 @@ export class DriveModalController {
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.className = 'btn btn-ghost btn-xs';
-        addBtn.textContent = '+ 队列';
-        addBtn.title = '加入播放列表';
+        addBtn.textContent = t('drive.addQueue');
+        addBtn.title = t('drive.addQueueTitle');
         addBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           this.callbacks.onAddItems([this.toMountPlayable(mountId, entry)], false);
-          this.callbacks.onToast(`已加入播放列表：${entry.name}`);
+          this.callbacks.onToast(t('drive.addedSingle', { name: entry.name }));
         });
         row.appendChild(addBtn);
       }
