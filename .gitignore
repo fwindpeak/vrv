@@ -1,2 +1,8 @@
 node_modules/
 dist/
+.vrviewer-data.json
+.env
+.env.*
+.vrviewer-data.json
+.env
+.env.*

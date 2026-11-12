@@ -22,23 +22,34 @@
 
 ### 环境要求
 
-- Node.js 18+（已验证 v26.7.0）
+- **Bun 1.1+**（已验证 v1.4.2，推荐）或 Node.js 18+
 
 ### 安装与运行
 
 ```bash
 # 安装依赖
-npm install
+bun install
 
-# 启动开发服务器（局域网设备如 Quest 可通过输出的 Network IP 访问）
-npm run dev
+# 启动开发服务器（同时启动 Bun API 服务与 Vite 前端热更新）
+bun run dev
 
 # 类型检查与生产构建
-npm run build
+bun run build
 
-# 预览生产构建产物
-npm run preview
+# 启动生产服务（Bun 直接托管静态资源与 Google Drive 代理 API）
+bun run start
 ```
+
+### 挂载与观看 Google Drive
+
+点击页面顶部「**+ Google Drive**」或欢迎页「**挂载 Google Drive**」，支持两种方式：
+
+1. **Google Drive 云端挂载（OAuth 2.0）**：
+   - 在弹窗中填写 Google Cloud OAuth Client ID / Client Secret（也可通过环境变量 `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET` 配置），完成授权后即可在网页内浏览「我的云端硬盘」「与我共享」「全部媒体」并直接播放。
+   - 也支持直接粘贴 OAuth Access Token 快速连接。
+   - 所有照片与视频均通过 Bun 后端流式代理（支持 HTTP `Range` 拖拽进度与同源 CORS），可直接用于 Three.js / WebGL / WebXR 立体渲染。
+2. **本地挂载目录（Google Drive for Desktop / rclone）**：
+   - 自动检测 macOS 本机 Google Drive for Desktop 挂载目录（`~/Library/CloudStorage/GoogleDrive-*`），支持一键挂载，也可手动添加任意本地或 `rclone` 挂载路径。
 
 ## 操作快捷键
 

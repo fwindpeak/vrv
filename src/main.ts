@@ -6,6 +6,7 @@ import {
   inspectFileMetadataHint,
 } from './utils/formatDetect';
 import { createSampleItems } from './utils/sampleMedia';
+import { DriveModalController, type DrivePlayableItem } from './ui/driveModal';
 import { VRViewerEngine } from './viewer/VRViewerEngine';
 
 // DOM Elements
@@ -21,12 +22,14 @@ const mediaBadgeEl = document.getElementById('media-badge') as HTMLElement;
 
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
 const btnAddLocal = document.getElementById('btn-add-local') as HTMLButtonElement;
+const btnOpenGDrive = document.getElementById('btn-open-gdrive') as HTMLButtonElement;
 const btnAddUrl = document.getElementById('btn-add-url') as HTMLButtonElement;
 const btnEnterVR = document.getElementById('btn-enter-vr') as HTMLButtonElement;
 const btnTogglePlaylist = document.getElementById('btn-toggle-playlist') as HTMLButtonElement;
 const btnToggleHud = document.getElementById('btn-toggle-hud') as HTMLButtonElement;
 
 const welcomeLocalBtn = document.getElementById('welcome-local-btn') as HTMLButtonElement;
+const welcomeGDriveBtn = document.getElementById('welcome-gdrive-btn') as HTMLButtonElement;
 const welcomeUrlBtn = document.getElementById('welcome-url-btn') as HTMLButtonElement;
 const welcomeSampleBtn = document.getElementById('welcome-sample-btn') as HTMLButtonElement;
 
@@ -266,8 +269,9 @@ function renderPlaylist(): void {
     const subEl = document.createElement('div');
     subEl.className = 'playlist-item-sub';
     const fmtShort = FORMAT_OPTIONS.find((f) => f.value === item.format)?.shortLabel ?? item.format;
+    const sourceTag = item.sourceLabel ?? (item.isLocal ? '本地' : '');
     subEl.textContent = `${item.kind === 'video' ? '视频' : '照片'} · ${fmtShort}${
-      item.isLocal ? ' · 本地' : ''
+      sourceTag ? ` · ${sourceTag}` : ''
     }`;
 
     info.appendChild(nameEl);
@@ -586,8 +590,43 @@ window.addEventListener('keydown', (e) => {
   } else if (e.code === 'Escape') {
     closeUrlModal();
     closeHelp();
+    driveModal.close();
   }
 });
+
+function upsertDriveItems(items: DrivePlayableItem[], selectFirst: boolean): void {
+  let firstId: string | null = null;
+  for (const d of items) {
+    if (!playlist.some((p) => p.id === d.id)) {
+      playlist.push({
+        id: d.id,
+        name: d.name,
+        url: d.url,
+        isLocal: false,
+        sourceLabel: d.sourceLabel,
+        kind: d.kind,
+        format: d.format,
+        autoDetectedFormat: d.format,
+        width: d.width,
+        height: d.height,
+      });
+    }
+    if (!firstId) firstId = d.id;
+  }
+  renderPlaylist();
+  if (selectFirst && firstId) {
+    selectMedia(firstId);
+  }
+}
+
+const driveModal = new DriveModalController({
+  onPlayItem: (item) => upsertDriveItems([item], true),
+  onAddItems: (items, selectFirst) => upsertDriveItems(items, selectFirst),
+  onToast: (msg, ms) => showToast(msg, ms),
+});
+
+btnOpenGDrive.addEventListener('click', () => driveModal.open());
+welcomeGDriveBtn.addEventListener('click', () => driveModal.open());
 
 // Init
 populateFormatSelects();

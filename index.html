@@ -33,6 +33,9 @@
             <button id="welcome-local-btn" class="btn btn-primary btn-lg">
               选择本地文件
             </button>
+            <button id="welcome-gdrive-btn" class="btn btn-secondary btn-lg">
+              挂载 Google Drive
+            </button>
             <button id="welcome-url-btn" class="btn btn-secondary btn-lg">
               通过 URL 观看
             </button>
@@ -66,6 +69,9 @@
         <div class="hud-right">
           <button id="btn-add-local" class="btn btn-secondary" title="添加本地照片或视频">
             + 本地文件
+          </button>
+          <button id="btn-open-gdrive" class="btn btn-secondary" title="挂载并浏览 Google Drive 文件">
+            + Google Drive
           </button>
           <button id="btn-add-url" class="btn btn-secondary" title="输入图片或视频 URL">
             + URL 链接
@@ -234,6 +240,136 @@
               <li>在普通 2D 显示器上观看 <strong>VR180 SBS / TB</strong> 或 <strong>360° 立体</strong> 时，默认提取<strong>左眼单目视角</strong>正常渲染，不会出现重影分屏。</li>
               <li>在 Meta Quest 等支持 <strong>WebXR</strong> 的浏览器中点击右上角「进入 VR 模式」，将自动启用左右眼独立立体渲染（头部 3DoF/6DoF 追踪，扳机键可控制视频播放/暂停）。</li>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Drive & Mounts Modal -->
+      <div id="gdrive-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-backdrop" id="gdrive-modal-backdrop"></div>
+        <div class="modal-card modal-card-wide">
+          <div class="modal-header">
+            <h3>Google Drive 挂载与浏览</h3>
+            <button id="gdrive-modal-close" class="btn btn-icon-sm">✕</button>
+          </div>
+
+          <div class="drive-tabs">
+            <button id="tab-gdrive-cloud" class="drive-tab active" data-tab="cloud">
+              ☁️ Google Drive 云端 (OAuth)
+            </button>
+            <button id="tab-gdrive-mounts" class="drive-tab" data-tab="mounts">
+              💾 本地挂载目录 (Drive Desktop / rclone)
+            </button>
+          </div>
+
+          <div class="modal-body drive-modal-body">
+            <!-- Cloud OAuth Panel -->
+            <div id="panel-gdrive-cloud" class="drive-panel">
+              <div id="gdrive-auth-box" class="drive-auth-box hidden">
+                <div class="drive-setup-grid">
+                  <div class="drive-setup-section">
+                    <h4>方式 1：Google OAuth 2.0 授权（推荐，可自动刷新）</h4>
+                    <p class="drive-hint">
+                      在 Google Cloud Console 创建 OAuth 2.0 客户端（Web 应用），将下方回调地址加入「已获授权的重定向 URI」：
+                    </p>
+                    <div class="redirect-uri-row">
+                      <code id="gdrive-redirect-uri">http://localhost:5173/api/gdrive/auth/callback</code>
+                      <button id="btn-copy-redirect" type="button" class="btn btn-ghost btn-xs">复制</button>
+                    </div>
+                    <div class="field-row">
+                      <label class="field">
+                        <span>Client ID</span>
+                        <input id="gdrive-client-id" type="text" placeholder="xxx.apps.googleusercontent.com" autocomplete="off" />
+                      </label>
+                      <label class="field">
+                        <span>Client Secret</span>
+                        <input id="gdrive-client-secret" type="password" placeholder="GOCSPX-..." autocomplete="off" />
+                      </label>
+                    </div>
+                    <div class="drive-auth-actions">
+                      <button id="btn-gdrive-save-connect" type="button" class="btn btn-primary">
+                        保存并授权连接 Google Drive
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="drive-setup-section drive-token-section">
+                    <h4>方式 2：使用 Access Token 快速连接</h4>
+                    <p class="drive-hint">
+                      若已有 OAuth Access Token（如从 OAuth Playground 获取），可直接粘贴连接：
+                    </p>
+                    <div class="field-row">
+                      <label class="field">
+                        <span>Access Token</span>
+                        <input id="gdrive-manual-token" type="password" placeholder="ya29.a0..." autocomplete="off" />
+                      </label>
+                      <div class="drive-token-btn-wrap">
+                        <button id="btn-gdrive-manual-connect" type="button" class="btn btn-secondary">
+                          立即连接
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="gdrive-browser-box" class="drive-browser-box hidden">
+                <div class="drive-toolbar">
+                  <div class="drive-account-pill">
+                    <span class="status-dot"></span>
+                    <span id="gdrive-account-label">已连接 Google Drive</span>
+                    <button id="btn-gdrive-disconnect" type="button" class="btn btn-ghost btn-xs">断开</button>
+                  </div>
+                  <div class="drive-view-pills">
+                    <button class="pill active" data-view="my-drive">我的云端硬盘</button>
+                    <button class="pill" data-view="shared">与我共享</button>
+                    <button class="pill" data-view="all-media">全部媒体</button>
+                  </div>
+                  <div class="drive-search-wrap">
+                    <input id="gdrive-search-input" type="search" placeholder="搜索文件名…" />
+                  </div>
+                </div>
+
+                <div class="drive-breadcrumb-bar">
+                  <div id="gdrive-breadcrumbs" class="drive-breadcrumbs"></div>
+                  <button id="btn-gdrive-add-all" type="button" class="btn btn-secondary btn-xs">
+                    + 全部加入播放列表
+                  </button>
+                </div>
+
+                <div id="gdrive-file-list" class="drive-file-list"></div>
+              </div>
+            </div>
+
+            <!-- Local / Mounted Drive Panel -->
+            <div id="panel-gdrive-mounts" class="drive-panel hidden">
+              <div class="mount-add-bar">
+                <input
+                  id="mount-path-input"
+                  type="text"
+                  placeholder="输入挂载目录路径，如 ~/Library/CloudStorage/GoogleDrive-.../My Drive 或 /Volumes/GoogleDrive"
+                />
+                <button id="btn-mount-add" type="button" class="btn btn-primary">挂载目录</button>
+              </div>
+
+              <div id="mount-detected-bar" class="mount-detected-bar hidden"></div>
+
+              <div class="mount-layout">
+                <div class="mount-sidebar">
+                  <div class="mount-sidebar-title">已挂载目录</div>
+                  <div id="mount-list" class="mount-list"></div>
+                </div>
+                <div class="mount-main">
+                  <div class="drive-breadcrumb-bar">
+                    <div id="mount-breadcrumbs" class="drive-breadcrumbs"></div>
+                    <button id="btn-mount-add-all" type="button" class="btn btn-secondary btn-xs">
+                      + 全部加入播放列表
+                    </button>
+                  </div>
+                  <div id="mount-file-list" class="drive-file-list"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

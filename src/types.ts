@@ -16,6 +16,7 @@ export interface MediaItem {
   name: string;
   url: string;
   isLocal: boolean;
+  sourceLabel?: string;
   kind: MediaKind;
   format: ProjectionFormat;
   autoDetectedFormat: ProjectionFormat;
